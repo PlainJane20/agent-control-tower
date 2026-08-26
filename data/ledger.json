@@ -1,0 +1,10 @@
+{
+  "2026-08-25": {
+    "slack-daily-agent": {
+      "calls": 2,
+      "input_tokens": 3446,
+      "output_tokens": 6447,
+      "cost": 0.107043
+    }
+  }
+}
