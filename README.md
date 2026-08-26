@@ -1,5 +1,7 @@
 # Agent Control Tower
 
+### *Policy, budget, approval, and audit controls for autonomous agents*
+
 <div align="center">
 
 [![Python 3.9+](https://img.shields.io/badge/Python_3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
@@ -22,6 +24,25 @@ This one governs the agents that already exist. Named for the aviation
 metaphor that also runs through [tarmac](https://github.com/PlainJane20/tarmac) —
 if Tarmac governs program delivery, this is the control tower for the AI
 agents doing the work.
+
+## At a glance
+
+| | |
+|---|---|
+| **Problem** | Useful agents can still create unmanaged cost, opaque decisions, or unauthorized external side effects |
+| **Approach** | Declarative action policy, explicit approval modes, hard budget caps, and append-only audit records |
+| **Proof** | 22 deterministic tests plus live retrofit evidence across two existing agents |
+| **Safety posture** | Read-only model calls remain non-blocking; write actions are risk-tiered and auditable |
+
+## Competencies demonstrated
+
+| Competency | Observable evidence |
+|---|---|
+| AI governance | Separates model inference, policy evaluation, approval, and execution |
+| Systems integration | Retrofitted through compatibility wrappers instead of application rewrites |
+| Operational resilience | Preserves unattended scheduled execution while gating higher-risk actions |
+| Financial stewardship | Per-agent ledgers and hard daily budget caps make cost enforceable |
+| Auditability | Append-only event records and explicit approval state transitions |
 
 ## The design problem this had to solve
 
