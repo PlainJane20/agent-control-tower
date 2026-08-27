@@ -1,3 +1,5 @@
+<img src="docs/agent-control-tower-banner.svg" alt="Agent Control Tower — Ai Governance & Operations" width="100%" />
+
 # Agent Control Tower
 
 ### *Policy, budget, approval, and audit controls for autonomous agents*

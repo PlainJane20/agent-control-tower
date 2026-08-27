@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" role="img" aria-labelledby="title description">
+  <title id="title">Agent Control Tower</title>
+  <desc id="description">Governing autonomous agents with budgets, approvals, policy, and auditability.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#081a2a"/>
+      <stop offset="0.56" stop-color="#12354d"/>
+      <stop offset="1" stop-color="#4f46e5" stop-opacity=".72"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop offset="0" stop-color="#67e8f9" stop-opacity=".26"/>
+      <stop offset="1" stop-color="#67e8f9" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#030b13" flood-opacity=".38"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="320" rx="24" fill="url(#bg)"/>
+  <circle cx="1035" cy="55" r="230" fill="url(#glow)"/>
+  <g opacity=".16" fill="none" stroke="#67e8f9" stroke-width="1.2" color="#67e8f9"><circle cx="1010" cy="146" r="38"/><circle cx="1010" cy="146" r="82"/><circle cx="1010" cy="146" r="126"/><path d="M1010 20v252M884 146h252M1010 146l88-72"/></g>
+  <g transform="translate(74 68)" filter="url(#shadow)">
+    <rect width="88" height="88" rx="22" fill="#102f45" stroke="#67e8f9" stroke-opacity=".58"/>
+    <g fill="none" stroke="#67e8f9" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" color="#67e8f9"><path d="M44 16v52M29 68h30M35 68l-8 8M53 68l8 8"/><circle cx="44" cy="30" r="10"/><path d="M20 38a25 25 0 0 1 48 0M13 31a33 33 0 0 1 62 0"/></g>
+  </g>
+  <text x="190" y="112" fill="#ffffff" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="50" font-weight="750" letter-spacing="-1">Agent Control Tower</text>
+  <text x="192" y="153" fill="#67e8f9" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="2.5">AI GOVERNANCE &amp; OPERATIONS</text>
+  <text x="75" y="225" fill="#dcebf0" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="21">Governing autonomous agents with budgets, approvals, policy,</text>
+  <text x="75" y="258" fill="#dcebf0" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="21">and auditability.</text>
+  <g transform="translate(852 168)" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" font-weight="700"><g transform="translate(0 0)"><rect width="90" height="42" rx="21" fill="#ffffff" fill-opacity=".1" stroke="#ffffff" stroke-opacity=".2"/><text x="45" y="26" text-anchor="middle" fill="#edf7fa">budget caps</text></g><g transform="translate(100 0)"><rect width="108" height="42" rx="21" fill="#ffffff" fill-opacity=".1" stroke="#ffffff" stroke-opacity=".2"/><text x="54" y="26" text-anchor="middle" fill="#edf7fa">human approval</text></g><g transform="translate(218 0)"><rect width="90" height="42" rx="21" fill="#ffffff" fill-opacity=".1" stroke="#ffffff" stroke-opacity=".2"/><text x="45" y="26" text-anchor="middle" fill="#edf7fa">audit trail</text></g></g>
+</svg>
