@@ -27,14 +27,15 @@ metaphor that also runs through [tarmac](https://github.com/PlainJane20/tarmac) 
 if Tarmac governs program delivery, this is the control tower for the AI
 agents doing the work.
 
-> **Named, specifically:** ServiceNow's 2026 "AI Control Tower" initiative
-> and Copado's "AgentOps" both cover this exact governance-for-agents
-> space at enterprise scale. ("Control tower" itself is a common
-> supply-chain/ops term, not something coined here.) The honest scope
-> difference: this is a lightweight, retrofit-first governance layer
-> proven against two real agents already running in this portfolio, not
-> an enterprise platform with SSO, compliance certs, or a sales team
-> behind it. Same idea, three very different weight classes.
+> **The competency this is really practicing:** retrofitting governance
+> onto agents that already exist and are already running, not designing
+> a governance layer on a blank whiteboard — proven live against
+> [slack-daily-brief](https://github.com/PlainJane20/slack-daily-brief)
+> and [exec-status-rollup](https://github.com/PlainJane20/exec-status-rollup),
+> the two real, already-running agents in this portfolio. For scale
+> context: ServiceNow's 2026 "AI Control Tower" initiative and Copado's
+> "AgentOps" cover this same governance-for-agents idea at enterprise
+> scale — same idea, three very different weight classes.
 
 ## At a glance
 
