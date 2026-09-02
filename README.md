@@ -29,9 +29,8 @@ agents doing the work.
 
 > **Named, specifically:** ServiceNow's 2026 "AI Control Tower" initiative
 > and Copado's "AgentOps" both cover this exact governance-for-agents
-> space at enterprise scale — worth naming directly since the "control
-> tower" metaphor isn't unique to this repo (it's a common supply-chain/
-> ops term generally, not something coined here). The honest scope
+> space at enterprise scale. ("Control tower" itself is a common
+> supply-chain/ops term, not something coined here.) The honest scope
 > difference: this is a lightweight, retrofit-first governance layer
 > proven against two real agents already running in this portfolio, not
 > an enterprise platform with SSO, compliance certs, or a sales team
