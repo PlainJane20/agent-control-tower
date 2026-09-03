@@ -37,6 +37,16 @@ agents doing the work.
 > "AgentOps" cover this same governance-for-agents idea at enterprise
 > scale — same idea, three very different weight classes.
 
+> **Related work in this portfolio:** [slack-daily-brief](https://github.com/PlainJane20/slack-daily-brief)
+> and [exec-status-rollup](https://github.com/PlainJane20/exec-status-rollup) aren't
+> just cited here — this repo is physically retrofitted onto both of them,
+> confirmed from their own READMEs and code: slack-daily-brief's `agent.py`
+> imports `GovernedClient` to wrap its Claude calls under a cost ledger,
+> and exec-status-rollup's `run_rollup.py` imports `governed_action` to gate
+> its Slack post behind human approval. Both of their READMEs point back
+> here the same way, so the retrofit is documented from both directions,
+> not just asserted from this side.
+
 ## At a glance
 
 | | |
