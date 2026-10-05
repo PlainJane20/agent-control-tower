@@ -6,9 +6,11 @@ email sends). Two modes, chosen by the caller, not guessed:
   until answered. Fine for a tool a human is actively running.
 - interactive=False: writes a pending-approval record to disk and returns
   immediately without executing the action. A human reviews and runs
-  `python cli.py approve <id>` / `deny <id>` later; the action only runs
-  once approved — see cli.py. This is the mode a scheduled/unattended
-  caller must use, since it can never block on stdin.
+  `python cli.py approve <id>` / `deny <id>` later. NOTE: that only flips
+  the record's status; nothing consumes an approved record. A later
+  governed_action() call always creates a NEW pending request, so as
+  written the action never executes via the async path. This is the mode a
+  scheduled/unattended caller must use, since it can never block on stdin.
 
 Either way, every request and its resolution is written to the audit log.
 """
@@ -92,12 +94,11 @@ def list_pending(pending_dir: Path = DEFAULT_PENDING_DIR) -> list:
 def resolve(request_id: str, approved: bool, pending_dir: Path = DEFAULT_PENDING_DIR) -> dict:
     """
     Marks a pending request approved/denied. This does NOT re-execute the
-    original action — there's no real way to resume a Python function that
-    already returned across a process boundary without seriously
-    over-engineering this. Approval here means "cleared to run" — the
-    calling agent (or a human) is responsible for re-attempting the action
-    on its next run, same as most real approval workflows (a GitHub Actions
-    required-reviewer approval triggers a new job run, not a resumed one).
+    original action, and nothing currently checks for an approved record:
+    governed_action() never looks up prior requests, it always queues a new
+    one. So "approved" is recorded state only, not a usable grant. Wiring
+    governed_action() to find and consume a matching approved request is
+    unimplemented (a known limitation).
     """
     path = _pending_path(request_id, pending_dir)
     if not path.exists():

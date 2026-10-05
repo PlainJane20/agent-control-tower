@@ -4,6 +4,9 @@ Cost ledger with per-agent daily budget caps.
 Pricing is approximate and intentionally configurable, not hardcoded truth —
 list prices change, and this isn't meant to be a billing system of record,
 just enough signal to catch a runaway agent before it burns real money.
+
+Known limitation: record_usage() is an unlocked read-modify-write of the
+whole JSON file, so concurrent writers can lose updates.
 """
 
 import json
@@ -41,7 +44,7 @@ _load = load_ledger  # internal alias used by the functions below
 
 
 def _save(data: dict, path: Path):
-    path.parent.mkdir(exist_ok=True)
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, indent=2))
 
 

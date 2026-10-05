@@ -1,7 +1,9 @@
 """
-Append-only audit log. One JSON line per event — never rewritten, never
-deleted, so the log itself can't be quietly edited after the fact. This is
-the "what actually happened" record; ledger.py is "what it cost."
+Audit log. One JSON line per event, written by appending to a plain file
+(mode "a"); this module never rewrites or deletes entries. NOTE: this is
+not tamper-evident — there is no hash chain, signature, or file-level
+protection, so anyone with filesystem access can edit the file undetected.
+This is the "what happened" record; ledger.py is "what it cost."
 """
 
 import json
@@ -26,7 +28,7 @@ def log_event(agent_name: str, kind: str, summary: str, metadata: dict = None,
         "summary": summary,
         "metadata": metadata or {},
     }
-    path.parent.mkdir(exist_ok=True)
+    path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "a") as f:
         f.write(json.dumps(event) + "\n")
     return event["id"]
