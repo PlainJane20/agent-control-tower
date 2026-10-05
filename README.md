@@ -8,13 +8,13 @@
 
 [![Python 3.9+](https://img.shields.io/badge/Python_3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![Powered by Claude](https://img.shields.io/badge/Powered_by-Claude-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://www.anthropic.com/)
-[![Tests](https://img.shields.io/badge/Unit_tests-22_passing-1baf7a?style=for-the-badge)](tests/)
+[![Tests](https://img.shields.io/badge/Unit_tests-42_passing-1baf7a?style=for-the-badge)](tests/)
 [![Retrofit](https://img.shields.io/badge/Retrofit-2_agents_(integration_present)-2a78d6?style=for-the-badge)]()
 
 </div>
 
 A lightweight, auditable governance layer for AI agents — cost tracking with
-budget caps (checked before each call, so a single call can overshoot), an append-only-by-convention audit log (plain file, not tamper-evident), and a human-approval gate for
+budget caps (checked before each call, so a single call can overshoot), a hash-chained, tamper-evident (not tamper-proof) audit log with a `verify` command, and a human-approval gate (interactive, or async with single-use expiring approvals) for
 write-side-effect actions (Slack posts, Jira writes, email sends). It is a
 small prototype. Integration code exists in two other agents in this
 portfolio — [slack-daily-agent](https://github.com/PlainJane20/slack-daily-brief)
@@ -53,7 +53,7 @@ agents doing the work.
 |---|---|
 | **Problem** | Useful agents can still create unmanaged cost, opaque decisions, or unauthorized external side effects |
 | **Approach** | Declarative action policy, explicit approval modes, budget caps, and audit records |
-| **Proof** | 22 unit tests; a handful of committed audit records from the two integrated agents |
+| **Proof** | 42 unit tests; a handful of committed audit records from the two integrated agents |
 | **Safety posture** | Read-only model calls remain non-blocking; write actions are risk-tiered and auditable |
 
 ## Competencies demonstrated
@@ -64,7 +64,7 @@ agents doing the work.
 | Systems integration | Retrofitted through compatibility wrappers instead of application rewrites |
 | Operational resilience | Preserves unattended scheduled execution while gating higher-risk actions |
 | Financial stewardship | Per-agent ledgers and daily budget caps (pre-call check) track cost |
-| Auditability | Audit event records (plain file, not tamper-evident) and explicit approval state transitions |
+| Auditability | Audit event records (hash-chained; `cli.py verify` checks it) and explicit approval state transitions |
 
 ## The design problem this had to solve
 
@@ -112,7 +112,7 @@ flowchart LR
 |---|---|
 | Policy is a declarative dict, not if/else in application code | `policy.py` is the one file a governance reviewer needs to read — the enforcement logic in `approval.py` never encodes a risk judgment itself, it just looks the action type up |
 | Approval mode is explicit (`interactive=True/False`), never inferred | A caller has to decide whether it can block on stdin. Guessing from "is this a TTY?" is exactly the kind of implicit behavior that broke the unattended-cron guarantee once already in this series |
-| Async approval doesn't try to resume execution | `resolve()` only flips a request's status. The intent was for the calling agent to re-attempt on its next run, but that is **not implemented**: `governed_action()` never looks up an approved request and always queues a new one (see Known limitations) |
+| Async approval is consume-on-next-run, not resume | `resolve()` only flips a request's status. The next non-interactive `governed_action()` call for the same agent, action type and description consumes an approved request once (and queues a new one otherwise), so the caller re-attempts on its next scheduled run rather than being resumed |
 | `GovernedClient` mirrors `anthropic.Anthropic()`'s exact call shape | `client.messages.create(...)` works identically whether `client` is real or governed — retrofitting an existing agent is a one-line change to client construction, not a rewrite of its logic |
 | Deterministic logic (ledger math, audit I/O, approval state machine) gets unit tests, not an eval harness | Consistent with the same split used in `exec-status-rollup` — there's no model in the loop in any of these three modules, so there's nothing for an LLM judge to grade |
 
@@ -126,18 +126,18 @@ committed to this repo, which the author says came from running the other two ag
   of that repo claims the unattended `launchd` path was re-checked; not verified here.
 - **`exec-status-rollup`**: audit shows the synchronous (interactive) approval gate
   exercised on both branches: `write_action_denied`, then
-  `write_action_approved` → `write_action_executed`. The async queue path has no such evidence and does not work end to end (see below).
+  `write_action_approved` → `write_action_executed`. The async queue path (approve, then consume on the next run) is covered by unit tests only; the committed data has no run of it.
 
 ## Known limitations
 
 Verified by reading the code:
 
-- **Audit log is not tamper-evident.** `audit.jsonl` is a plain file opened in append mode. There is no hash chain, signature, or write protection; anyone with file access can edit or delete lines undetected. "Append-only" describes what this code does, not a guarantee.
-- **Async approval never executes the action.** `cli.py approve` only sets `status: approved` in `data/pending/<id>.json`. `governed_action()` never checks for prior approved requests; each non-interactive call creates a fresh pending request and raises `ApprovalPending`. An approved request is never consumed, so only the interactive (`interactive=True`) path actually runs gated actions.
-- **Ledger is not concurrency-safe.** `record_usage()` reads, modifies, and rewrites the whole JSON file with no locking; simultaneous agents can lose updates, which also weakens budget caps.
+- **Audit log is tamper-evident, not tamper-proof.** New records are hash-chained (`prev_hash` + `hash`, sha256) and `python cli.py verify` detects edited, deleted, inserted or reordered records. Someone with write access can still recompute the whole chain or truncate the tail undetected (no signature or external anchor). Lines written before chaining (such as the 5 committed events) form an unprotected legacy prefix; the chain starts at the first new record.
+- **Async approval is single-use and expires, but is unauthenticated.** A non-interactive `governed_action()` call runs a gated action only if it finds an approved, unconsumed, unexpired request matching agent, action type and a sha256 of the description; it marks it consumed before running (at-most-once: a failure inside the action does not auto-retry). Approvals expire after 24h by default (`approval_ttl_seconds` or `ACT_APPROVAL_TTL_SECONDS`). Approval is bound to the description string, not to the real call arguments behind it.
+- **Locking is advisory and single-host.** The ledger, audit log and approval queue use `fcntl.flock`; this protects concurrent runs on one machine (tested with threads and processes) but is a no-op on platforms without `fcntl` and unreliable on network filesystems.
 - **Budget cap is a pre-call check.** A call is blocked only if spend is already at or above the cap; the call that crosses it still happens.
 - **Retrofit claims are partly unverified.** The two agents import this repo optionally and fall back to running ungoverned if it is missing. The committed data holds 5 audit events; the "live" runs could not be reproduced here.
-- No authentication on `cli.py approve` (anyone who can run it can approve), and approvals do not bind to the action's arguments.
+- No authentication on `cli.py approve`: anyone who can run it can approve.
 
 ## Setup
 
@@ -156,6 +156,9 @@ python cli.py ledger --agent slack-daily-agent
 
 # Inspect the audit trail
 python cli.py audit --agent exec-status-rollup --kind write_action_approved
+
+# Check the audit hash chain (exit code 1 if broken)
+python cli.py verify
 
 # See what's waiting on a human
 python cli.py pending
