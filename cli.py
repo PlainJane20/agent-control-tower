@@ -5,20 +5,21 @@ Governance CLI — inspect spend, audit trail, and pending approvals.
 Usage:
   python cli.py ledger [--agent NAME] [--date YYYY-MM-DD]
   python cli.py audit [--agent NAME] [--kind KIND]
+  python cli.py verify
   python cli.py pending
   python cli.py approve <request-id>
   python cli.py deny <request-id>
 """
 
 import argparse
-import json
+import sys
 from datetime import date
 
 from rich.console import Console
 from rich.table import Table
 
 from approval import list_pending, resolve
-from audit import read_events
+from audit import read_events, verify_chain
 from ledger import load_ledger, DEFAULT_LEDGER_PATH
 
 console = Console()
@@ -58,6 +59,16 @@ def cmd_audit(args):
     console.print(table)
 
 
+def cmd_verify(args):
+    result = verify_chain()
+    if result["ok"]:
+        console.print(f"[green]✓ Audit chain intact[/] — {result['chained']} chained record(s), "
+                      f"{result['legacy']} legacy unchained line(s) not covered")
+        return
+    console.print(f"[red]✗ Audit chain BROKEN[/] at line {result['line']}: {result['error']}")
+    sys.exit(1)
+
+
 def cmd_pending(args):
     records = list_pending()
     if not records:
@@ -77,7 +88,7 @@ def cmd_pending(args):
 def cmd_approve(args):
     record = resolve(args.request_id, approved=True)
     console.print(f"[green]✓ Approved[/] {record['id']} — {record['description']}")
-    console.print("[dim]Note: this marks it cleared. Re-run the originating agent to execute it.[/]")
+    console.print("[dim]Note: this does not run the action. The next non-interactive run of the originating agent with the same description executes it once (approval expires after 24h by default).[/]")
 
 
 def cmd_deny(args):
@@ -99,6 +110,9 @@ def main():
     p_audit.add_argument("--kind")
     p_audit.add_argument("--limit", type=int, default=20)
     p_audit.set_defaults(func=cmd_audit)
+
+    p_verify = sub.add_parser("verify")
+    p_verify.set_defaults(func=cmd_verify)
 
     p_pending = sub.add_parser("pending")
     p_pending.set_defaults(func=cmd_pending)

@@ -5,13 +5,17 @@ Pricing is approximate and intentionally configurable, not hardcoded truth —
 list prices change, and this isn't meant to be a billing system of record,
 just enough signal to catch a runaway agent before it burns real money.
 
-Known limitation: record_usage() is an unlocked read-modify-write of the
-whole JSON file, so concurrent writers can lose updates.
+record_usage() is a read-modify-write of the whole JSON file; it holds an
+exclusive flock on a sidecar "<ledger>.lock" file for the duration so
+concurrent runs on the same host don't lose updates (no-op without fcntl).
 """
 
 import json
+import os
 from datetime import date
 from pathlib import Path
+
+from filelock import file_lock
 
 DEFAULT_LEDGER_PATH = Path(__file__).parent / "data" / "ledger.json"
 
@@ -45,7 +49,9 @@ _load = load_ledger  # internal alias used by the functions below
 
 def _save(data: dict, path: Path):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2))
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(data, indent=2))
+    os.replace(tmp, path)  # atomic: readers never see a half-written file
 
 
 def record_usage(
@@ -60,14 +66,15 @@ def record_usage(
     run_date = run_date or date.today().isoformat()
     cost = compute_cost(model, input_tokens, output_tokens)
 
-    data = _load(path)
-    day = data.setdefault(run_date, {})
-    agent = day.setdefault(agent_name, {"calls": 0, "input_tokens": 0, "output_tokens": 0, "cost": 0.0})
-    agent["calls"] += 1
-    agent["input_tokens"] += input_tokens
-    agent["output_tokens"] += output_tokens
-    agent["cost"] += cost
-    _save(data, path)
+    with file_lock(path.with_name(path.name + ".lock")):
+        data = _load(path)
+        day = data.setdefault(run_date, {})
+        agent = day.setdefault(agent_name, {"calls": 0, "input_tokens": 0, "output_tokens": 0, "cost": 0.0})
+        agent["calls"] += 1
+        agent["input_tokens"] += input_tokens
+        agent["output_tokens"] += output_tokens
+        agent["cost"] += cost
+        _save(data, path)
     return cost
 
 
