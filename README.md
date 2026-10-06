@@ -42,7 +42,9 @@ agents doing the work.
 > and [exec-status-rollup](https://github.com/PlainJane20/exec-status-rollup) aren't
 > just cited here — their local checkouts import this repo (optionally; if it is
 > not found they run ungoverned): slack-daily-brief's `agent.py`
-> imports `GovernedClient` to wrap its Claude calls under a cost ledger,
+> imports `GovernedClient` to wrap its Claude call under a cost ledger and
+> audit log (it never passes a `daily_budget`, so no cap is enforced, and its
+> Slack post does not go through `governed_action`),
 > and exec-status-rollup's `run_rollup.py` imports `governed_action` to gate
 > its Slack post behind human approval. Both of their READMEs point back
 > here the same way, so the link is documented from both directions.
@@ -55,7 +57,7 @@ agents doing the work.
 | **Approach** | Declarative action policy, explicit approval modes, budget caps, and audit records |
 | **Pattern** | Governance wrapper/gate around other agents (see [Architecture pattern](#architecture-pattern)) |
 | **Proof** | 42 unit tests; a handful of committed audit records from the two integrated agents |
-| **Safety posture** | Read-only model calls remain non-blocking; write actions are risk-tiered and auditable |
+| **Safety posture** | Model calls are never approval-gated (budget cap only, and only if the caller sets one); gated write actions are risk-tiered and audited |
 
 ## Architecture pattern
 
@@ -63,7 +65,7 @@ agents doing the work.
 
 - **Deterministic vs model-driven:** Everything here is deterministic code. The model only runs inside the wrapped agents.
 - **Human gate:** Yes, for actions the policy marks `approval`: an interactive y/N prompt, or an async queue approved with `cli.py approve`. Approvals are single-use and expire. `llm_call` and recurring Slack posts are never gated.
-- **Honest limit:** The controls are opt-in: an agent is governed only if its code imports this repo (the integrations fall back to ungoverned if it is missing), and the approval is a local CLI command with no approver identity or authentication, so this is a prototype audit and approval layer, not an enforcement boundary.
+- **Honest limit:** The controls are opt-in: an agent is governed only if its code imports this repo (the integrations fall back to ungoverned if it is missing), and the approval is a local CLI command (or a local y/N prompt) with no approver identity or authentication, recorded or checked, so this is a prototype audit and approval layer, not an enforcement boundary.
 
 ## Competencies demonstrated
 
@@ -146,7 +148,8 @@ Verified by reading the code:
 - **Locking is advisory and single-host.** The ledger, audit log and approval queue use `fcntl.flock`; this protects concurrent runs on one machine (tested with threads and processes) but is a no-op on platforms without `fcntl` and unreliable on network filesystems.
 - **Budget cap is a pre-call check.** A call is blocked only if spend is already at or above the cap; the call that crosses it still happens.
 - **Retrofit claims are partly unverified.** The two agents import this repo optionally and fall back to running ungoverned if it is missing. The committed data holds 5 audit events; the "live" runs could not be reproduced here.
-- No authentication on `cli.py approve`: anyone who can run it can approve.
+- **No authentication or approver identity on `cli.py approve`** (or the interactive y/N prompt): anyone who can run it, or write to `data/pending/`, can approve, and audit records do not say who approved.
+- **Budget caps are opt-in per caller.** `GovernedClient(daily_budget=None)` enforces nothing; slack-daily-brief currently constructs it without a budget.
 
 ## Setup
 
