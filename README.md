@@ -53,8 +53,17 @@ agents doing the work.
 |---|---|
 | **Problem** | Useful agents can still create unmanaged cost, opaque decisions, or unauthorized external side effects |
 | **Approach** | Declarative action policy, explicit approval modes, budget caps, and audit records |
+| **Pattern** | Governance wrapper/gate around other agents (see [Architecture pattern](#architecture-pattern)) |
 | **Proof** | 42 unit tests; a handful of committed audit records from the two integrated agents |
 | **Safety posture** | Read-only model calls remain non-blocking; write actions are risk-tiered and auditable |
+
+## Architecture pattern
+
+**Governance wrapper/gate.** This repo contains no agent of its own and makes no model calls. It wraps other agents: `governed_client.GovernedClient` checks a budget (`ledger.py`) and logs each Claude call (`audit.py`), and `approval.governed_action` gates write actions using the declarative table in `policy.py`.
+
+- **Deterministic vs model-driven:** Everything here is deterministic code. The model only runs inside the wrapped agents.
+- **Human gate:** Yes, for actions the policy marks `approval`: an interactive y/N prompt, or an async queue approved with `cli.py approve`. Approvals are single-use and expire. `llm_call` and recurring Slack posts are never gated.
+- **Honest limit:** The controls are opt-in: an agent is governed only if its code imports this repo (the integrations fall back to ungoverned if it is missing), and the approval is a local CLI command with no approver identity or authentication, so this is a prototype audit and approval layer, not an enforcement boundary.
 
 ## Competencies demonstrated
 
