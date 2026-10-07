@@ -10,6 +10,8 @@
 [![Powered by Claude](https://img.shields.io/badge/Powered_by-Claude-D97757?style=for-the-badge&logo=anthropic&logoColor=white)](https://www.anthropic.com/)
 [![Tests](https://img.shields.io/badge/Unit_tests-42_passing-1baf7a?style=for-the-badge)](tests/)
 [![Retrofit](https://img.shields.io/badge/Retrofit-2_agents_(integration_present)-2a78d6?style=for-the-badge)]()
+[![CI](https://img.shields.io/github/actions/workflow/status/PlainJane20/agent-control-tower/ci.yml?branch=main&style=for-the-badge&label=CI)](https://github.com/PlainJane20/agent-control-tower/actions/workflows/ci.yml)
+[![MIT License](https://img.shields.io/badge/License-MIT-6b7280?style=for-the-badge)](LICENSE)
 
 </div>
 
@@ -199,6 +201,10 @@ try:
 except ApprovalDenied:
     ...
 ```
+
+## License
+
+MIT — see [LICENSE](LICENSE).
 
 ## Contact
 
