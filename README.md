@@ -134,8 +134,10 @@ flowchart LR
 This is the `data/ledger.json` and `data/audit.jsonl`
 committed to this repo, which the author says came from running the other two agents against Slack and Jira (not independently reproducible from this repo; the file holds only 5 events):
 
-- **`slack-daily-agent`**: the ledger shows a brief run with cost (`$0.0613`,
-  1723 input / 3740 output tokens) and an audit record. The README
+- **`slack-daily-agent`**: the ledger shows 2 calls totaling $0.107043
+  (3446 input / 6447 output tokens), and the audit log holds the matching 2 `llm_call` records
+  (the first call alone: `$0.061269`, 1723 input / 3740 output tokens; the second: `$0.045774`,
+  1723 input / 2707 output tokens). The README
   of that repo claims the unattended `launchd` path was re-checked; not verified here.
 - **`exec-status-rollup`**: audit shows the synchronous (interactive) approval gate
   exercised on both branches: `write_action_denied`, then
